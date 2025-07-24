@@ -1,8 +1,8 @@
 variable "ami_id" {
-  type    = string
+  type        = string
   description = "AMI for EC2 instances"
 }
 variable "key_name" {
-  type    = string
+  type        = string
   description = "SSH key for EC2"
 }
