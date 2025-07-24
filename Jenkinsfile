@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        AWS_DEFAULT_REGION = 'us-west-2'
+        AWS_DEFAULT_REGION = 'us-west-2' // Set your preferred AWS region
     }
 
     options {
@@ -17,17 +17,65 @@ pipeline {
                 checkout scm
             }
         }
-        stage('Terraform Init/Plan/Apply') {
+
+        stage('Terraform Init') {
             steps {
-                withCredentials([[
-                    $class: 'AmazonWebServicesCredentialsBinding',
-                    credentialsId: 'aws-keys'
-                ]]) {
+                withCredentials([
+                    usernamePassword(
+                        credentialsId: 'aws-keys',
+                        usernameVariable: 'AWS_ACCESS_KEY_ID',
+                        passwordVariable: 'AWS_SECRET_ACCESS_KEY'
+                    )
+                ]) {
                     sh 'terraform init'
+                }
+            }
+        }
+
+        stage('Terraform Format & Validate') {
+            steps {
+                withCredentials([
+                    usernamePassword(
+                        credentialsId: 'aws-keys',
+                        usernameVariable: 'AWS_ACCESS_KEY_ID',
+                        passwordVariable: 'AWS_SECRET_ACCESS_KEY'
+                    )
+                ]) {
                     sh 'terraform fmt -check'
                     sh 'terraform validate'
+                }
+            }
+        }
+
+        stage('Terraform Plan') {
+            steps {
+                withCredentials([
+                    usernamePassword(
+                        credentialsId: 'aws-keys',
+                        usernameVariable: 'AWS_ACCESS_KEY_ID',
+                        passwordVariable: 'AWS_SECRET_ACCESS_KEY'
+                    )
+                ]) {
                     sh 'terraform plan -out=tfplan'
-                    input message: 'Approve to apply infrastructure changes?'
+                }
+            }
+        }
+
+        stage('Manual Approval') {
+            steps {
+                input message: 'Approve to apply infrastructure changes?'
+            }
+        }
+
+        stage('Terraform Apply') {
+            steps {
+                withCredentials([
+                    usernamePassword(
+                        credentialsId: 'aws-keys',
+                        usernameVariable: 'AWS_ACCESS_KEY_ID',
+                        passwordVariable: 'AWS_SECRET_ACCESS_KEY'
+                    )
+                ]) {
                     sh 'terraform apply -auto-approve tfplan'
                 }
             }
