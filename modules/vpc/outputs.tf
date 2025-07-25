@@ -4,9 +4,6 @@ output "vpc_id" {
 output "public_subnet_ids" {
   value = aws_subnet.public[*].id
 }
-output "public_subnet_ids" {
-  value = aws_subnet.public[*].id
-}
 
 output "public_subnet_azs" {
   value = aws_subnet.public[*].availability_zone
