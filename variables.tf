@@ -1,13 +1,13 @@
 variable "ami_id" {
   type        = string
   description = "AMI for EC2 instances"
-  default     = "ami-0d1b5a8c13042c939"
+  default     = "ami-0b8607d2721c94a77"
 }
 
 variable "key_name" {
   type        = string
   description = "SSH key for EC2"
-  default     = "cloudninjakey"
+  default     = "singapore_keys"
 }
 
 variable "instance_count" {
