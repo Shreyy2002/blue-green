@@ -1,7 +1,8 @@
 module "vpc" {
-  source         = "./modules/vpc"
-  cidr_block     = "10.0.0.0/16"
-  public_subnets = ["10.0.1.0/24", "10.0.2.0/24"]
+  source             = "./modules/vpc"
+  cidr_block         = "10.0.0.0/16"
+  public_subnets     = ["10.0.1.0/24", "10.0.2.0/24"]
+  public_subnet_azs  = ["ap-southeast-1a", "ap-southeast-1b"]  # <-- distinct AZs
 }
 
 module "sg" {
@@ -34,15 +35,20 @@ module "green_ec2" {
 }
 
 locals {
-  # Map AZ to subnet ID to keep only one subnet per AZ
-  az_to_subnet = {
+  az_to_subnets = {
     for idx, az in module.vpc.public_subnet_azs :
-    az => module.vpc.public_subnet_ids[idx]
+    az => flatten([
+      for i, candidate_az in module.vpc.public_subnet_azs :
+      candidate_az == az ? [module.vpc.public_subnet_ids[i]] : []
+    ])...
   }
 
-  # Unique subnet IDs (one per AZ)
-  unique_subnet_ids = values(local.az_to_subnet)
+  unique_subnet_ids = [
+    for az, subnets in local.az_to_subnets : compact(flatten(subnets))[0]
+  ]
 }
+
+
 
 module "alb" {
   source            = "./modules/alb"
