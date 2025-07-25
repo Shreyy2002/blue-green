@@ -33,9 +33,20 @@ module "green_ec2" {
   user_data_path    = "${path.root}/scripts/user-data.sh"
 }
 
+locals {
+  # Map AZ to subnet ID to keep only one subnet per AZ
+  az_to_subnet = {
+    for idx, az in module.vpc.public_subnet_azs :
+    az => module.vpc.public_subnet_ids[idx]
+  }
+
+  # Unique subnet IDs (one per AZ)
+  unique_subnet_ids = values(local.az_to_subnet)
+}
+
 module "alb" {
   source            = "./modules/alb"
-  subnet_ids        = module.vpc.public_subnet_ids
+  subnet_ids        = local.unique_subnet_ids
   security_group_id = module.sg.security_group_id
   tg_name           = "blue-green-tg"
   vpc_id            = module.vpc.vpc_id
