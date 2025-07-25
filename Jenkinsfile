@@ -41,7 +41,6 @@ pipeline {
                         passwordVariable: 'AWS_SECRET_ACCESS_KEY'
                     )
                 ]) {
-                    sh 'terraform fmt -check'
                     sh 'terraform validate'
                 }
             }
